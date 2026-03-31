@@ -271,9 +271,11 @@ def manhattanHeuristic(state, problem=None):
                 
     return total_distance
 
-def manhattan_short(board, goal):
+def manhattan_short(state, problem=None):
+    board = state.cells
+    goal = [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
     pos = {val: (r, c) for r, row in enumerate(goal) for c, val in enumerate(row)}
-    return sum(abs(r - pos[v]) + abs(c - pos[v]) 
+    return sum(abs(r - pos[v][0]) + abs(c - pos[v][1]) 
                for r, row in enumerate(board) 
                for c, v in enumerate(row) if v != 0)    
 
