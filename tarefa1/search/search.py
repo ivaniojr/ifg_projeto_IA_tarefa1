@@ -275,9 +275,12 @@ def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
     
     visited = {} 
 
+    itr = 0
     while not frontier.isEmpty():
         state, path, cost_g = frontier.pop()
-
+        itr += 1
+        print(f"\n Iteração {itr}")
+       
         # CONVERSÃO AQUI: Transformamos a lista em tupla para o dicionário aceitar
         state_key = tuple(state) if isinstance(state, list) else state
 
