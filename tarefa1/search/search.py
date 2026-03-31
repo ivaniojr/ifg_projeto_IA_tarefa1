@@ -1,121 +1,354 @@
 # search.py
 # ---------
-# Licensing Information:  You are free to use or extend these projects for
-# educational purposes provided that (1) you do not distribute or publish
-# solutions, (2) you retain this notice, and (3) you provide clear
-# attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
-# Attribution Information: The Pacman AI projects were developed at UC Berkeley.
-# The core projects and autograders were primarily created by John DeNero
-# (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
-# Student side autograding was added by Brad Miller, Nick Hay, and
+# Informações de Licenciamento: Você é livre para usar ou estender estes projetos para
+# fins educacionais, desde que (1) você não distribua ou publique
+# soluções, (2) você retenha este aviso, e (3) você forneça clara
+# atribuição à UC Berkeley, incluindo um link para http://ai.berkeley.edu.
+#
+# Informações de Atribuição: Os projetos de IA do Pacman foram desenvolvidos na UC Berkeley.
+# Os projetos principais e os corretores automáticos foram criados principalmente por John DeNero
+# (denero@cs.berkeley.edu) e Dan Klein (klein@cs.berkeley.edu).
+# A correção automática do lado do estudante foi adicionada por Brad Miller, Nick Hay, e
 # Pieter Abbeel (pabbeel@cs.berkeley.edu).
 
 
 """
-In search.py, you will implement generic search algorithms which are called by
-Pacman agents (in searchAgents.py).
+Em search.py, você implementará algoritmos de busca genéricos que são chamados por
+agentes do Pacman (em searchAgents.py).
 """
 
 import util
-from game import Directions
-from typing import List
 
 class SearchProblem:
     """
-    This class outlines the structure of a search problem, but doesn't implement
-    any of the methods (in object-oriented terminology: an abstract class).
+    Esta classe descreve a estrutura de um problema de busca, mas não implementa
+    nenhum dos métodos (em terminologia orientada a objetos: uma classe abstrata).
 
-    You do not need to change anything in this class, ever.
+    Você não precisa alterar nada nesta classe, nunca.
     """
 
     def getStartState(self):
         """
-        Returns the start state for the search problem.
+        Retorna o estado inicial para o problema de busca.
         """
         util.raiseNotDefined()
 
     def isGoalState(self, state):
         """
-          state: Search state
+          state: Estado de busca
 
-        Returns True if and only if the state is a valid goal state.
+        Retorna True se e somente se o estado for um estado objetivo válido.
         """
         util.raiseNotDefined()
 
     def getSuccessors(self, state):
         """
-          state: Search state
+          state: Estado de busca
 
-        For a given state, this should return a list of triples, (successor,
-        action, stepCost), where 'successor' is a successor to the current
-        state, 'action' is the action required to get there, and 'stepCost' is
-        the incremental cost of expanding to that successor.
+        Para um estado dado, isso deve retornar uma lista de triplas, (successor,
+        action, stepCost), onde 'successor' é um sucessor do estado atual,
+        'action' é a ação necessária para chegar lá, e 'stepCost' é
+        o custo incremental de expandir para esse sucessor.
         """
         util.raiseNotDefined()
 
     def getCostOfActions(self, actions):
         """
-         actions: A list of actions to take
+         actions: Uma lista de ações a serem tomadas
 
-        This method returns the total cost of a particular sequence of actions.
-        The sequence must be composed of legal moves.
+        Este método retorna o custo total de uma sequência particular de ações.
+        A sequência deve ser composta de movimentos legais.
         """
         util.raiseNotDefined()
 
 
-
-
-def tinyMazeSearch(problem: SearchProblem) -> List[Directions]:
+def tinyMazeSearch(problem):
     """
-    Returns a sequence of moves that solves tinyMaze.  For any other maze, the
-    sequence of moves will be incorrect, so only use this for tinyMaze.
+    Retorna uma sequência de movimentos que resolve tinyMaze. Para qualquer outro labirinto, a
+    sequência de movimentos estará incorreta, então use apenas para tinyMaze.
     """
+    from game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-def depthFirstSearch(problem: SearchProblem) -> List[Directions]:
+
+# obtém o último elemento na lista do nó = node.STATE
+def getState(node: list):
+    if type(node) is list:
+        node = node[1]
+    return node
+
+
+def depthFirstSearch(problem: SearchProblem):
+    debug = False
+    
+    # Pilha (Stack) para DFS: Último a entrar, primeiro a sair (LIFO)
+    fronteira = util.Stack()
+    no_inicio = problem.getStartState()
+    
+    # Inicializa com (estado_atual, caminho_ate_aqui)
+    fronteira.push((no_inicio, []))
+    visitados = set()
+
+    interacao = 0
+    while not fronteira.isEmpty():
+        if debug:
+            print(f'\n Iteração: {interacao}')
+            interacao += 1    
+
+        # Seleciona e remove o elemento do TOPO da pilha
+        estado_atual, caminho = fronteira.pop()
+        
+        if debug:   
+            print(f'    - Nó analisado: {estado_atual}')
+            print(f'    - Caminho acumulado: {caminho}')
+
+        # Se alcançou o objetivo, retorna a lista de direções
+        if problem.isGoalState(estado_atual):
+            if debug: print(">>> Caminho encontrado!", caminho)
+            return caminho
+
+        # Só expandimos o nó se ele ainda não foi explorado por outro caminho
+        if estado_atual not in visitados:
+            if debug:    
+                print(f'    - Registrando no set de visitados: {estado_atual}')
+            
+            visitados.add(estado_atual)
+            sucessores = problem.getSuccessors(estado_atual)
+
+            # Percorre os sucessores (estado, acao, custo)
+            for proximo_estado, acao, custo in sucessores:
+                if proximo_estado not in visitados:
+                    novo_caminho = caminho + [acao]
+                    
+                    if debug:
+                        print(f'         + Direção [{acao}] -> Próximo: {proximo_estado}')
+                    
+                    fronteira.push((proximo_estado, novo_caminho))
+
+    return [] # Falha
+
+
+
+def breadthFirstSearch(problem: SearchProblem):
     """
-    Search the deepest nodes in the search tree first.
-
-    Your search algorithm needs to return a list of actions that reaches the
-    goal. Make sure to implement a graph search algorithm.
-
-    To get started, you might want to try some of these simple commands to
-    understand the search problem that is being passed in:
-
-    print("Start:", problem.getStartState())
-    print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
-    print("Start's successors:", problem.getSuccessors(problem.getStartState()))
+    Busca em Largura (BFS) que encontra o caminho mais curto.
+    - Utiliza uma Fila (FIFO) para expansão em camadas.
+    - Garante a solução ótima em termos de número de passos.
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import Queue
 
-def breadthFirstSearch(problem: SearchProblem) -> List[Directions]:
-    """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # Ativa e desativa debugs detalhados para acompanhar o processo de busca
+    debug=True
 
-def uniformCostSearch(problem: SearchProblem) -> List[Directions]:
-    """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    # 1. INICIALIZAÇÃO
+    # Usamos uma Fila para garantir que os nós mais rasos sejam processados primeiro
+    fronteira = util.Queue()
+    no_inicio = problem.getStartState()
+    
+    # A fronteira armazena o estado atual e a lista de ações para chegar até ele
+    fronteira.push((no_inicio, []))
+    
+    # O 'set' de visitados evita ciclos e redundância (Busca em Grafo)
+    # Na BFS, marcamos como visitado logo na inserção para economizar memória
+    visitados = set()
+    visitados.add(no_inicio)
+    
+    nos_expandidos = 0
+    
+    if debug:
+        print(f"\n[INÍCIO] Partindo de: {no_inicio}")
 
-def nullHeuristic(state, problem=None) -> float:
+    # 2. LOOP DE BUSCA
+    while not fronteira.isEmpty():
+        # Remove o nó mais antigo da fila (Princípio FIFO)
+        estado_atual, caminho = fronteira.pop()
+        nos_expandidos += 1
+        
+        if debug:
+            print(f"  > [{nos_expandidos}] Analisando nó: {estado_atual}")
+            print(f"    Caminho até aqui: {caminho}")
+
+        # 3. TESTE DE OBJETIVO
+        # Verificamos se o estado retirado da fila é a meta
+        if problem.isGoalState(estado_atual):
+            if debug:
+                print(f"!!! OBJETIVO ENCONTRADO em {nos_expandidos} expansões !!!")
+                print(f"Caminho para o objetivo: {caminho}")
+            return caminho
+
+        # 4. EXPANSÃO DE SUCESSORES
+        # Obtemos os vizinhos: (próximo_estado, ação_necessária, custo_do_passo)
+        for proximo_estado, acao, custo in problem.getSuccessors(estado_atual):
+            
+            # Só adicionamos à fila se o estado ainda não foi "visto" por nenhum caminho
+            if proximo_estado not in visitados:
+                # Marcamos imediatamente para evitar que outros caminhos o adicionem de novo
+                visitados.add(proximo_estado)
+                
+                # Criamos o novo caminho acumulado
+                novo_caminho = caminho + [acao]
+                fronteira.push((proximo_estado, novo_caminho))
+                
+                if debug:
+                    print(f"    + Adicionado à fila: {proximo_estado} via {acao}")
+
+    # 5. FINALIZAÇÃO (Caso a fila esvazie sem encontrar o objetivo)
+    if debug:
+        print(f"[FALHA] Todos os {nos_expandidos} nós acessíveis foram explorados.")
+    return []
+
+
+def uniformCostSearch(problem: SearchProblem, debug=True):
+    from util import PriorityQueue
+
+    # 1. INICIALIZAÇÃO
+    # Usamos uma Fila de Prioridade: o item com menor custo acumulado sai primeiro
+    fronteira = util.PriorityQueue()
+    no_inicio = problem.getStartState()
+    
+    # Na PriorityQueue do util.py, passamos: push(item, prioridade)
+    # Item: (estado, caminho, custo_acumulado) | Prioridade: custo_acumulado
+    fronteira.push((no_inicio, [], 0), 0)
+    
+    # Conjunto para busca rápida O(1)
+    visitados = set()
+    nos_expandidos = 0
+
+    if debug: 
+        print(f"\n[INÍCIO UCS] Partindo de: {no_inicio}")
+
+    # 2. LOOP DE BUSCA
+    while not fronteira.isEmpty():
+        # Remove o nó com o MENOR custo acumulado g(n)
+        estado_atual, caminho, custo_total = fronteira.pop()
+
+        # Importante para UCS: Se já visitamos este estado por um caminho mais barato,
+        # ignoramos esta expansão.
+        if estado_atual in visitados:
+            continue
+            
+        nos_expandidos += 1
+        
+        if debug:
+            print(f"  > [{nos_expandidos}] Expandindo: {estado_atual} | Custo: {custo_total}")
+
+        # 3. TESTE DE OBJETIVO
+        if problem.isGoalState(estado_atual):
+            if debug: print(f"--- Sucesso! Objetivo encontrado ---")
+            print(f"  - Nós expandidos: {nos_expandidos}")
+            print(f"  - Custo total: {custo_total}")
+            return caminho
+
+        # 4. MARCAR COMO VISITADO
+        # Na UCS, marcamos no POP para garantir que encontramos o custo mínimo
+        visitados.add(estado_atual)
+
+        # 5. EXPANSÃO DE SUCESSORES
+        for proximo_estado, acao, custo_passo in problem.getSuccessors(estado_atual):
+            if proximo_estado not in visitados:
+                novo_custo = custo_total + custo_passo
+                novo_caminho = caminho + [acao]
+                
+                # A prioridade na fila é o novo custo acumulado
+                fronteira.push((proximo_estado, novo_caminho, novo_custo), novo_custo)
+                
+                if debug:
+                    print(f"    + Na fila: {proximo_estado} (Custo: {novo_custo})")
+
+    return []
+
+
+def nullHeuristic(state, problem=None):
     """
-    A heuristic function estimates the cost from the current state to the nearest
-    goal in the provided SearchProblem.  This heuristic is trivial.
+    Uma função heurística estima o custo do estado atual até o objetivo mais próximo
+    no SearchProblem fornecido. Esta heurística é trivial.-
     """
     return 0
 
-def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic) -> List[Directions]:
-    """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
+    frontier = util.PriorityQueue()
+    startState = problem.getStartState()
+    
+    frontier.push((startState, [], 0), heuristic(startState, problem))
+    
+    visited = {} 
 
-# Abbreviations
-bfs = breadthFirstSearch
+    while not frontier.isEmpty():
+        state, path, cost_g = frontier.pop()
+
+        # CONVERSÃO AQUI: Transformamos a lista em tupla para o dicionário aceitar
+        state_key = tuple(state) if isinstance(state, list) else state
+
+        if state_key in visited and visited[state_key] <= cost_g:
+            continue
+            
+        visited[state_key] = cost_g
+
+        if problem.isGoalState(state):
+            return path
+
+        for nextState, action, stepCost in problem.getSuccessors(state):
+            new_g = cost_g + stepCost
+            new_f = new_g + heuristic(nextState, problem)
+            
+            # CONVERSÃO AQUI TAMBÉM para a checagem
+            next_key = tuple(nextState) if isinstance(nextState, list) else nextState
+            
+            if next_key not in visited or visited[next_key] > new_g:
+                frontier.push((nextState, path + [action], new_g), new_f)
+
+    return []
+
+
+def aStarSearch1(problem: SearchProblem, heuristic=nullHeuristic):
+    # 1. Inicialização
+    frontier = util.PriorityQueue()
+    startState = problem.getStartState()
+    
+    # Armazenamos: (estado_atual, caminho_ate_aqui, custo_g)
+    # A prioridade inicial é g(n) + h(n) = 0 + h(start)
+    frontier.push((startState, [], 0), heuristic(startState, problem))
+    
+    reached = set()
+    itr = 0
+    while not frontier.isEmpty():
+        print(f"\n Iteração {itr}")
+        # 2. Seleção (O PriorityQueue já nos dá o menor f_n)
+        state, path, cost_g = frontier.pop()
+
+        # 3. Teste de Objetivo
+        if problem.isGoalState(state):
+            return path
+
+        # 4. Expansão (Busca em Grafo)
+        if state not in reached:
+            reached.add(state)
+
+            for nextState, action, stepCost in problem.getSuccessors(state):
+                if nextState not in reached:
+                    
+                    # g(n) = custo acumulado + custo do próximo passo
+                    new_g = cost_g + stepCost
+                    # f(n) = g(n) + h(n)
+                    
+                    heuristic_value = heuristic(nextState, problem)
+                    new_f = new_g + heuristic_value
+                    
+                    new_path = path + [action]
+                    print(f"Expansão: {state} -> {nextState} | Ação: {action} | g(n): {new_g} | h(n): {heuristic_value} | f(n): {new_f}")
+                    frontier.push((nextState, new_path, new_g), new_f)
+
+        itr += 1            
+
+    return [] # Falha
+
+
+
+
+# Abreviações
 dfs = depthFirstSearch
-astar = aStarSearch
+bfs = breadthFirstSearch
 ucs = uniformCostSearch
+astar = aStarSearch

@@ -221,12 +221,8 @@ class EightPuzzleSearchProblem(search.SearchProblem):
         """
         return len(actions)
 
-EIGHT_PUZZLE_DATA = [[1, 0, 2, 3, 4, 5, 6, 7, 8],
-                     [1, 7, 8, 2, 3, 4, 5, 6, 0],
-                     [4, 3, 2, 7, 0, 5, 1, 6, 8],
-                     [5, 1, 3, 4, 0, 2, 6, 7, 8],
-                     [1, 2, 5, 7, 6, 8, 0, 4, 3],
-                     [0, 3, 1, 6, 8, 2, 7, 5, 4]]
+
+EIGHT_PUZZLE_DATA = [[0,8,7,6,5,4,3,2,1]]                     
 
 def loadEightPuzzle(puzzleNumber):
     """
@@ -248,28 +244,53 @@ def loadEightPuzzle(puzzleNumber):
     """
     return EightPuzzleState(EIGHT_PUZZLE_DATA[puzzleNumber])
 
-def createRandomEightPuzzle(moves=100):
+def manhattanHeuristic(state, problem=None):
     """
-      moves: number of random moves to apply
+    Soma das distâncias de Manhattan de cada peça até sua posição objetivo.
+    O 'state' no 8-puzzle costuma ser uma tupla ou objeto que representa o tabuleiro.
+    """
+    total_distance = 0
+    # O estado final (goal) do 8-puzzle costuma ser:
+    # 0 1 2
+    # 3 4 5
+    # 6 7 8  (onde 0 é o espaço vazio)
+    
+    # Transformamos o estado em uma grade 2D para facilitar o cálculo
+    cells = state.cells # No projeto Berkeley, o estado do 8-puzzle tem o atributo .cells
+    
+    for row in range(3):
+        for col in range(3):
+            value = cells[row][col]
+            if value != 0: # Ignoramos o espaço vazio
+                # Onde a peça 'value' deveria estar:
+                target_row = value // 3
+                target_col = value % 3
+                
+                # Distância de Manhattan: |x1 - x2| + |y1 - y2|
+                total_distance += abs(row - target_row) + abs(col - target_col)
+                
+    return total_distance
 
-      Creates a random eight puzzle by applying
-      a series of 'moves' random moves to a solved
-      puzzle.
-    """
-    puzzle = EightPuzzleState([0,1,2,3,4,5,6,7,8])
-    for i in range(moves):
-        # Execute a random legal move
-        puzzle = puzzle.result(random.sample(puzzle.legalMoves(), 1)[0])
-    return puzzle
+def manhattan_short(board, goal):
+    pos = {val: (r, c) for r, row in enumerate(goal) for c, val in enumerate(row)}
+    return sum(abs(r - pos[v]) + abs(c - pos[v]) 
+               for r, row in enumerate(board) 
+               for c, v in enumerate(row) if v != 0)    
 
 if __name__ == '__main__':
-    puzzle = createRandomEightPuzzle(25)
-    print('A random puzzle:')
+    puzzle = loadEightPuzzle(0)
+    print('O puzzle carregado:')
     print(puzzle)
 
     problem = EightPuzzleSearchProblem(puzzle)
-    path = search.breadthFirstSearch(problem)
-    print('BFS found a path of %d moves: %s' % (len(path), str(path)))
+    
+    #path = search.depthFirstSearch(problem)
+    #print('DFS found a path of %d moves: %s' % (len(path), str(path)))
+    
+    #path = search.aStarSearch(problem, heuristic=manhattanHeuristic)
+    path = search.aStarSearch(problem, heuristic=manhattan_short)
+    print('A* found a path of %d moves: %s' % (len(path), str(path)))
+    
     curr = puzzle
     i = 1
     for a in path:
