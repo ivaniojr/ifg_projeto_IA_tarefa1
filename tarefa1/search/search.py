@@ -72,13 +72,11 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-
 # obtém o último elemento na lista do nó = node.STATE
 def getState(node: list):
     if type(node) is list:
         node = node[1]
     return node
-
 
 def depthFirstSearch(problem: SearchProblem):
     debug = False
@@ -128,7 +126,6 @@ def depthFirstSearch(problem: SearchProblem):
                     fronteira.push((proximo_estado, novo_caminho))
 
     return [] # Falha
-
 
 
 def breadthFirstSearch(problem: SearchProblem):
@@ -267,87 +264,44 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+
+
 def aStarSearch(problem: SearchProblem, heuristic=nullHeuristic):
-    frontier = util.PriorityQueue()
-    startState = problem.getStartState()
+    # Usamos o PriorityQueue da util.py fornecida
+    fronteira = util.PriorityQueue()
+    start_state = problem.getStartState()
     
-    frontier.push((startState, [], 0), heuristic(startState, problem))
+    # Armazenamos (estado, caminho, custo_g)
+    # Nota: passamos o caminho como lista, mas evitamos operações pesadas nele
+    fronteira.push((start_state, [], 0), heuristic(start_state, problem))
     
-    visited = {} 
+    # 'visitados' armazena o menor custo g(n) encontrado para cada estado
+    visitados = {} 
 
-    itr = 0
-    while not frontier.isEmpty():
-        state, path, cost_g = frontier.pop()
-        itr += 1
-        print(f"\n Iteração {itr}")
-       
-        # CONVERSÃO AQUI: Transformamos a lista em tupla para o dicionário aceitar
-        state_key = tuple(state) if isinstance(state, list) else state
+    iteracao = 0    
+    while not fronteira.isEmpty():
+        state, path, cost_g = fronteira.pop()
 
-        if state_key in visited and visited[state_key] <= cost_g:
+        # Se já chegamos aqui com um custo menor ou igual, ignoramos a expansão
+        if state in visitados and visitados[state] <= cost_g:
             continue
             
-        visited[state_key] = cost_g
+        visitados[state] = cost_g
 
         if problem.isGoalState(state):
             return path
 
-        for nextState, action, stepCost in problem.getSuccessors(state):
-            new_g = cost_g + stepCost
-            new_f = new_g + heuristic(nextState, problem)
+        for next_state, action, step_cost in problem.getSuccessors(state):
+            new_g = cost_g + step_cost
             
-            # CONVERSÃO AQUI TAMBÉM para a checagem
-            next_key = tuple(nextState) if isinstance(nextState, list) else nextState
-            
-            if next_key not in visited or visited[next_key] > new_g:
-                frontier.push((nextState, path + [action], new_g), new_f)
+            # Só colocamos na fila se for um caminho potencialmente melhor
+            if next_state not in visitados or visitados[next_state] > new_g:
+                # h(n) é calculado aqui
+                new_f = new_g + heuristic(next_state, problem)
+                # Criar a nova lista de ações apenas no push
+                fronteira.push((next_state, path + [action], new_g), new_f)
 
     return []
-
-
-def aStarSearch1(problem: SearchProblem, heuristic=nullHeuristic):
-    # 1. Inicialização
-    frontier = util.PriorityQueue()
-    startState = problem.getStartState()
-    
-    # Armazenamos: (estado_atual, caminho_ate_aqui, custo_g)
-    # A prioridade inicial é g(n) + h(n) = 0 + h(start)
-    frontier.push((startState, [], 0), heuristic(startState, problem))
-    
-    reached = set()
-    itr = 0
-    while not frontier.isEmpty():
-        print(f"\n Iteração {itr}")
-        # 2. Seleção (O PriorityQueue já nos dá o menor f_n)
-        state, path, cost_g = frontier.pop()
-
-        # 3. Teste de Objetivo
-        if problem.isGoalState(state):
-            return path
-
-        # 4. Expansão (Busca em Grafo)
-        if state not in reached:
-            reached.add(state)
-
-            for nextState, action, stepCost in problem.getSuccessors(state):
-                if nextState not in reached:
-                    
-                    # g(n) = custo acumulado + custo do próximo passo
-                    new_g = cost_g + stepCost
-                    # f(n) = g(n) + h(n)
-                    
-                    heuristic_value = heuristic(nextState, problem)
-                    new_f = new_g + heuristic_value
-                    
-                    new_path = path + [action]
-                    print(f"Expansão: {state} -> {nextState} | Ação: {action} | g(n): {new_g} | h(n): {heuristic_value} | f(n): {new_f}")
-                    frontier.push((nextState, new_path, new_g), new_f)
-
-        itr += 1            
-
-    return [] # Falha
-
-
 
 
 # Abreviações
