@@ -196,7 +196,7 @@ class EightPuzzleSearchProblem(search.SearchProblem):
         self.puzzle = puzzle
 
     def getStartState(self):
-        return puzzle
+        return self.puzzle
 
     def isGoalState(self,state):
         return state.isGoal()
@@ -288,9 +288,15 @@ if __name__ == '__main__':
     
     #path = search.depthFirstSearch(problem)
     #print('DFS found a path of %d moves: %s' % (len(path), str(path)))
-    
-    #path = search.aStarSearch(problem, heuristic=manhattanHeuristic)
-    path = search.aStarSearch(problem, heuristic=manhattan_short)
+
+    #path = search.breadthFirstSearch(problem)
+    #print('BFS found a path of %d moves: %s' % (len(path), str(path)))
+
+    #path = search.uniformCostSearch(problem)
+    #print('UCS found a path of %d moves: %s' % (len(path), str(path)))
+        
+    path = search.aStarSearch(problem, heuristic=manhattanHeuristic)
+    #path = search.aStarSearch(problem, heuristic=manhattan_short)
     print('A* found a path of %d moves: %s' % (len(path), str(path)))
     
     curr = puzzle
